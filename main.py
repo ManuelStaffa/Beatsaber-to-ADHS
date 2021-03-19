@@ -1,9 +1,11 @@
 from tkinter import Tk     # from tkinter import Tk for Python 3.x
 from tkinter import *
 from tkinter.filedialog import askopenfilename
-import json #invite jason
+import json # invite jason
 import configparser
 from configparser import ConfigParser
+import webbrowser
+import math
 
 # Variables --------------------------------------------------------------------
 config = ConfigParser()
@@ -11,7 +13,7 @@ config = ConfigParser()
 version = "2021.3.17"
 window_width = "600"
 window_height = "600"
-label_height = 11
+label_height = 9
 
 GREY = "#202020"
 DARK_GRAY = "#3c3836"
@@ -55,7 +57,6 @@ def openFile():
         #hasen't been set.
         labelName.configure(background=RED)
         inputName.configure(background=LIGHT_RED)
-        editLabel("Please input a song name and artist.")
     else:
         labelName.configure(background=BLUE)
         inputName.configure(background=LIGHT_BLUE)
@@ -64,18 +65,18 @@ def openFile():
         #hasen't been set.
         labelArtist.configure(background=RED)
         inputArtist.configure(background=LIGHT_RED)
-        editLabel("Please input a song name and artist.")
     else:
         labelArtist.configure(background=BLUE)
         inputArtist.configure(background=LIGHT_BLUE)
 
 
     if inputName.get() == "" or inputArtist.get() == "":
+        editLabel("Please input a song name and artist.")
         return
 
     try:
         filename = askopenfilename() # Show an "Open" dialog box and return the path to the selected file
-        editLabel("Opened "+filename)
+        editLabel("Opened file located at "+filename)
         # Open the jason
         with open(filename, "r") as myfile:
             levelData = myfile.read()
@@ -126,13 +127,16 @@ def openFile():
     editLabel("Finished iterating.")
 
     # Add a new section and some values
-    config.add_section('Map')
-    config.set('Map', 'songName', str(inputName.get()))
-    config.set('Map', 'songArtist', str(inputArtist.get()))
-    config.set('Map', 'notesLeft', str(notesLeft))
-    config.set('Map', 'notesMidLeft', str(notesMidLeft))
-    config.set('Map', 'notesMidRight', str(notesMidRight))
-    config.set('Map', 'notesRight', str(notesRight))
+    try:
+        config.add_section('Map')
+        config.set('Map', 'songName', str(inputName.get()))
+        config.set('Map', 'songArtist', str(inputArtist.get()))
+        config.set('Map', 'notesLeft', str(notesLeft))
+        config.set('Map', 'notesMidLeft', str(notesMidLeft))
+        config.set('Map', 'notesMidRight', str(notesMidRight))
+        config.set('Map', 'notesRight', str(notesRight))
+    except:
+        editLabel("Error while creating ini file")
 
     # Save to a file
     try:
@@ -148,13 +152,31 @@ def openFile():
 
 
 # Edit Label
+lines=[]
 def editLabel(status):
+    lineAmount = 0
+    for line in lines:
+        lineAmount += math.ceil(len(line)/(int(window_width)/6))
+    lineAmount += 1
+
+    if lineAmount < label_height:
+        lines.append(status)
+    else:
+        for i in range(0, lineAmount-label_height):
+            lines.pop(0)
+        lines.append(status)
+
+    text = "\n".join(lines)
+    textBox.configure(text="\nStatus messages will appear here.\n{}".format(text))
+
+
+"""def editLabel(status):
     text_len = len(textBox.cget("text").rstrip().split("\n"))
     if text_len > label_height:
         text = "\n".join(textBox.cget("text").rstrip().split("\n")[1:])
         textBox.configure(text="{}\n{}".format(text, status))
     else:
-        textBox.configure(text="{}\n{}".format(textBox.cget("text").rstrip(), status))
+        textBox.configure(text="{}\n{}".format(textBox.cget("text").rstrip(), status))"""
 
 
 # Window contents --------------------------------------------------------------
@@ -177,10 +199,12 @@ buttonLoad = Button(text="Open file and convert",
                     command=openFile)
 
 
-textBox = Label(text="Status messages will appear here",
+textBox = Label(text="\nStatus messages will appear here.",
                 width=window_width,
+                wraplength=window_width,
                 background=GREY,
-                foreground=WHITE)
+                foreground=WHITE,
+                justify=CENTER)
 
 
 labelName = Label(text="Input song name:",
