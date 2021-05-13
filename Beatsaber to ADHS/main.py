@@ -50,6 +50,13 @@ window.option_add('*Font', 'Consolas 15')
 
 
 # Functions --------------------------------------------------------------------
+def get_path(filename):
+    if hasattr(sys, "_MEIPASS"):
+        return f'{os.path.join(sys._MEIPASS, filename)}'
+    else:
+        return f'{filename}'
+
+
 def openFile():
     # Check  for input metadata
 
